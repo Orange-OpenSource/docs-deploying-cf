@@ -1,0 +1,43 @@
+@startuml
+title "HTTP proxy support in CloudFoundry"
+
+actor app_user
+actor paas_ops
+package gcf {
+    component push
+    component logs
+}
+package uaac {
+}
+package cf_deployment {
+    component uaa
+    component loggregator
+    component cc
+    component dea
+    component warden_app_droplet
+}
+
+cloud internet {
+ [custom buildpack repository] as buildpack_repo
+ [package repository] as package_repo
+ [custom web service] as custom_service
+}
+
+
+left to right direction
+
+paas_ops --> uaac: manage spaces and services
+uaac --> uaa: (20) HTTP and HTTPS
+
+
+app_user - gcf: use locally
+
+push --> uaa: (1) authenticate
+push --> cc: (2) push app bits
+logs --> loggregator: (3) get logs through websockets
+dea --> buildpack_repo: (5) git clone through HTTPS
+dea --> package_repo: (6) HTTP get
+warden_app_droplet --> custom_service: (10) invoke custom api
+
+
+@enduml
